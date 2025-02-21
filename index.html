@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Годовой расклад карт</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h2>Введите дату рождения</h2>
+        <input type="date" v-model="birthDate">
+        <button @click="getCard">Получить расклад</button>
+
+        <div v-if="card">
+            <h3>Ваш возраст: {{ age }}</h3>
+            <h3>Карта года: {{ card }}</h3>
+            <h3>Полный расклад:</h3>
+            <div class="spread">
+                <span v-for="(card, index) in spread" :key="index" class="card">{{ card }}</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    birthDate: '',
+                    age: null,
+                    card: null,
+                    spread: []
+                };
+            },
+            methods: {
+                async getCard() {
+                    if (!this.birthDate) {
+                        alert("Введите корректную дату рождения");
+                        return;
+                    }
+
+                    const response = await fetch('http://127.0.0.1:5000/get_cards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ birth_date: this.birthDate })
+                    });
+
+                    const data = await response.json();
+                    this.age = data.age;
+                    this.card = data.card;
+                    this.spread = data.spread;
+                }
+            }
+        }).mount('#app');
+    </script>
+
+    <style>
+        .spread {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .card {
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</body>
+</html>
